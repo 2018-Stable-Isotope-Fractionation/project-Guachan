@@ -81,6 +81,8 @@ $$
 Let's consider the sensitivity of the system to the relative rates of production and remineralization in the euphotic zone, in addition to variability in dissolved inorganic pools. How does the isotopic composition of organic carbon change in the euphotic zone, under varying rates of remineralization? We will use generalized fractionation factors for carbon fixation and respiration.
 
 
+Complete the calculation for $\delta_{OCez}$
+
 ```{r}
 ez_node <- expand.grid(
   eps_ez_fix = -20,
@@ -89,7 +91,7 @@ ez_node <- expand.grid(
   dic_ez = seq(0,-8, -1)
 ) %>% 
   as_data_frame() %>% 
-  mutate(OCez = dic_ez+eps_ez_fix-r_ez*eps_ez_resp)
+  mutate(OCez = ?)
   
 
 ez_plot <- 
@@ -112,12 +114,14 @@ ez_plot
 
 ### How does the role of remineralization compare to that of the DIC pool being incorporated into the cell in the euphotic zone? 
 
-The direct fractionation of respiration on the isotopic composition of particulate organic carbon is very small even over large ranges of relative remineralization rates (0 to 1). However, the form of inorganic carbon incorporated into the cell as a considerably larger fractionation effect.
+
+
 
 
 ### What might play a role in the availability of different inorganic carbon species throughout the water column?
 
-The pH of the oceans dictates the relative concentrations of inorganic carbon species, however the offset in isotopic composition remains the same (~8 per mille between CO2 and HCO3). A shifting pH and/or high respiration rates could significantly change the the local concentrations of each species and have significant isotopic effects on biomass production.
+
+
 
 
 ```{r out.width = "100%", echo=FALSE, eval=TRUE}
@@ -128,18 +132,18 @@ knitr::include_graphics("Carbonate Chem and Isotopes.png")
 ## OMZ Node
 
 
-### Let's solve for the isotopic composition of OC in the OMZ. Assume that the fractionation factors for respiration are the same in the euphotic zone and the OMZ, but let's try a range of CO2 fixation factors found in the literature from different fixation pathways. We'll also go ahead and assign values to the different DIC pools between the EZ and OMZ.
+Let's solve for $\delta_{OComz}$. Assume that the fractionation factors for respiration are the same in the euphotic zone and the OMZ, but let's try a range of CO2 fixation factors found in the literature from different fixation pathways. We'll also go ahead and assign values to the different DIC pools between the EZ and OMZ.
+
+Plot the $\delta_{OComz}$ for a range relative OMZ production ( $f_{omz}$ )
 
 
 ```{r}
-# Now hold remineralization constant, and change the fractionation factors between euphotic vs omz fixation
-
 omz_node <- expand.grid(
   eps_omz_resp = 2,
   eps_ez_resp = 2,
   r_ez = .9,
   r_omz = .9,
-  f_omz = seq(0,1,.01),
+  f_omz = ?,
   eps_omz_fix = c(-20, -26, -36),
   eps_ez_fix = -20,
   dic_low = -8,
@@ -169,31 +173,33 @@ base_plot
 
 ### Why does the isotopic composition in the OMZ have a maximum value of -22 regardless of Eps OMZ Fixation?
 
-At 0% fomz, all of the biomass is produced in the surface, so the only relevant fractionations are due to fixation in the surface, respiration.
+
 
 
 ### At EPS OMZ Fix = -20, the isotopic composition still changes despite being the same fractionation as at the surface, why?
 
-Despite utilizing the same CO2 fixation pathway in this scenario, the DIC pools they draw from are 8 per mille different.
+
 
 
 ### Why does the POC become more depleted with a larger fomz component?
 
-The greater fraction of POC produced via fixation pathways with a larger fractionation factor.
 
 
 
-### Now let's experiment with varying remineralization terms. Start first with a range of euphotic zone remineralization to determine how the OC in the OMZ would be affected.
+
+Now let's experiment with varying remineralization terms. Start first with a range of euphotic zone remineralization to determine how the OC in the OMZ would be affected. (Where: r_ez > 0 & r_ez < 1)
 
 ```{r}
 omz_node2 <- expand.grid(
   dic_high = 0,
   dic_low = -8,
-  r_ez = c(.1,.5, .95),
+  r_ez = c(?), #two or 3 values is enough
   r_omz = .9,
   f_omz = seq(0,1,.01),
   eps_omz_fix = c(-20, -26, -36),
-  eps_ez_fix = -20
+  eps_ez_fix = -20,
+  eps_ez_resp = 2,
+  eps_omz_resp = 2
 ) %>% 
   mutate(OC_omz = ((f_omz-1)*(r_ez-1)*dic_high+(r_ez-1)*(r_ez*eps_ez_resp-eps_ez_fix)+f_omz*(dic_low+eps_omz_fix-r_omz*eps_omz_resp+(r_ez-1)*(eps_ez_fix-r_ez*eps_ez_resp)))/(1+(f_omz-1)*r_ez))
 
@@ -204,18 +210,24 @@ base_plot %+% omz_node2
 
 ### What do you notice about the difference in slope between different remineralization scenarios?
 
-The isotopic composition changes much more rapidly under scenarios with higher EZ remineralization because less of the isotopically light OMZ POC is required to significantly alter the bulk isotopic value.
 
 
-## Now let's experiment with the role of remineralization in the OMZ on the OC isotopic composition.
+
+
+Now let's experiment with the role of remineralization in the OMZ on the OC isotopic composition.
+Try a range a similar range of values for r_omz
 
 ```{r}
 omz_node3 <- expand.grid(
+  eps_ez_resp = 2,
+  eps_omz_resp = 2,
   r_ez = .9,
-  r_omz = c(.1,.5,.99),
+  r_omz = c(?),
   f_omz = seq(0,1,.01),
   eps_omz_fix = c(-20, -26, -36),
-  eps_ez_fix = -20
+  eps_ez_fix = -20,
+  dic_high = 0,
+  dic_low = -8
 ) %>% 
   mutate(OC_omz = ((f_omz-1)*(r_ez-1)*dic_high+(r_ez-1)*(r_ez*eps_ez_resp-eps_ez_fix)+f_omz*(dic_low+eps_omz_fix-r_omz*eps_omz_resp+(r_ez-1)*(eps_ez_fix-r_ez*eps_ez_resp)))/(1+(f_omz-1)*r_ez))
 
@@ -240,11 +252,20 @@ base_plot2
 
 ### How does this compare to the relationship with EZ Remineralization?
 
-Similarly, the remineralization rapidly changes the isotopic composition of the POC when the fixation pathways are significantly different from that at the surface (-26, or -36). Again as the fraction of OMZ production increases, the POC values become more depleted and approach 100% OMZ biomass.
 
 
 
-## The f_onet term is a means to relate the different isotopic composition of the EZ and OMZ in order to estimate what percentage of the POC found below the OMZ was actually produced in the OMZ. First let's see how this term relates to the f_omz term described above.
+
+
+The $f_{onet}$ term is a means to relate the different isotopic composition of the EZ and OMZ in order to estimate what percentage of the POC exported below the OMZ was actually produced in the OMZ. First let's see how this term relates to the $f_{omz}$ term described above.
+
+
+$$
+\begin{aligned}
+f_{onet} = \frac{f_{omz}*(r_o-1)}{-1-(f_{omz}-1)*r_e+f_{omz}*r_o}
+\end{aligned}
+$$
+
 
 ```{r}
 omz_node4 <- expand.grid(
@@ -252,16 +273,16 @@ omz_node4 <- expand.grid(
   r_omz = .9,
   f_omz = seq(0,1,.05)
 ) %>% 
-  mutate(f_onet = f_omz*(r_omz-1)/(-1-(f_omz-1)*r_ez+f_omz*r_omz))
+  mutate(f_onet = ?)
 
 sanity_check <- 
   ggplot(omz_node4) +
   aes(x = f_omz, y = f_onet, color = factor(r_ez)) +
   geom_point() + 
-  #geom_hline(yintercept = -10, color = "black", linetype = 2) +
+  geom_hline(yintercept = .5, color = "black", linetype = 2) +
   scale_x_continuous(name = latex2exp::TeX("$f_{omz}$"), 
                      expand = c(0,0), labels = function(x) paste(100*x, "%")) +
-  scale_y_continuous(name = latex2exp::TeX("$f_{onet}$")) +
+  scale_y_continuous(name = latex2exp::TeX("$f_{onet}$"), labels = function(x) paste0(100*as.numeric(x), "%")) +
   scale_color_manual(name = "EZ Remineralization", labels = function(x) paste0(100*as.numeric(x), "%"), 
                      values = RColorBrewer::brewer.pal(6, "Dark2")) +
   #expand_limits(y = -15) +
@@ -276,7 +297,7 @@ sanity_check
 Under high EZ remineralization, relatively little gross production in the OMZ (f_omz) is needed to achieve a significant f_onet, while when EZ Remin is low, a much larger fraction of production is required to make up a significant amount of the exported fraction.
 
 
-### Let's consider the opposite scenario, keep r_ez constant but select a range of r_omz values
+Let's consider the opposite scenario, we'll keep r_ez constant but select a range of r_omz values
 
 ```{r}
 omz_node5 <- expand.grid(
@@ -290,10 +311,10 @@ sanity_check2 <-
   ggplot(omz_node5) +
   aes(x = f_omz, y = f_onet, color = factor(r_omz)) +
   geom_point() + 
-  #geom_hline(yintercept = -10, color = "black", linetype = 2) +
+  geom_hline(yintercept = .5, color = "black", linetype = 2) +
   scale_x_continuous(name = latex2exp::TeX("$f_{omz}$"), 
                      expand = c(0,0), labels = function(x) paste(100*x, "%")) +
-  scale_y_continuous(name = latex2exp::TeX("$f_{onet}$")) +
+  scale_y_continuous(name = latex2exp::TeX("$f_{onet}$"), labels = function(x) paste0(100*as.numeric(x), "%")) +
   scale_color_manual(name = "OMZ Remineralization", labels = function(x) paste0(100*as.numeric(x), "%"), 
                      values = RColorBrewer::brewer.pal(6, "Dark2"))
   theme_gray()
@@ -304,11 +325,11 @@ sanity_check2
 
 ### Does it STILL make sense!? Which scenario requires a much greater fraction of OMZ production in order to achieve a significant f_onet?
 
-The high OMZ remineralization scenario!
 
 
 
-## Now let's play with a theoretical water column with realistic values for POC, remineralization etc. and a range of CO2 fixation fractionation factors.
+
+Now let's play with a theoretical water column with realistic values for $\delta_{OCez}$, $\delta_{OComz}$, remineralization etc., and a range of CO2 fixation fractionation factors.
 
 ```{r}
 omz_node6 <- expand.grid(
@@ -333,7 +354,7 @@ base_plot3 <-
   #geom_hline(yintercept = -10, color = "black", linetype = 2) +
   scale_x_continuous(name = latex2exp::TeX("$r_{omz}$"), 
                      expand = c(0,0), labels = function(x) paste(100*x, "%")) +
-  scale_y_continuous(name = latex2exp::TeX("$f_{onet}$")) +
+  scale_y_continuous(name = latex2exp::TeX("$f_{onet}$"), labels = function(x) paste0(100*as.numeric(x), "%")) +
   scale_color_manual(name = "Eps OMZ Fixation", 
                      values = RColorBrewer::brewer.pal(6, "Dark2")) +
   scale_linetype_manual(name = "EZ Remineralization", 
@@ -346,52 +367,9 @@ base_plot3
 ```
 
 
-### Why doesn't the EZ remineralization appear to significantly change the fonet component in this plot?
-
-Respiration is defined as having a very small isotopic effect, rather it plays a much more important role in the proportion of biomass produced in the surface that makes it to the OMZ and deeper. Also, the availability of remineralized CO2 is likely responsible for the large shift in the isotopic composition of the dissolved inorganic pools at different points in the water column.
 
 
 ### Considering that remineralization in the OMZ is also likely >85%, what range of fonet values do we estimate based on these theoretical measurements?
 
-Approximately 5-30% depending on the omz fixation value, seems unlikely however that the myriad of metabolisms in the OMZ would have the same average fractionation factor as the EZ.
-
-
-
-
-```{r}
-omz_node6 <- expand.grid(
-  eps_ez_resp = 2,
-  eps_omz_resp = 2,
-  delta_oc_omz = -30,
-  delta_oc_ez = -22,
-  delta_dic_ez = 0,
-  delta_dic_omz = -10,
-  r_ez = .9,
-  r_omz = seq(.75, 1,.01),
-  eps_omz_fix = c(-20,-26, -36),
-  eps_ez_fix = -20
-) %>% 
-  mutate(f_onet = (r_omz-1)*(delta_dic_ez-delta_oc_omz+eps_ez_fix-r_ez*eps_ez_resp)/((r_omz-1)*delta_dic_ez + delta_dic_omz-eps_ez_fix+r_ez*eps_ez_resp+eps_omz_fix-r_omz*(delta_oc_omz-eps_ez_fix+r_ez*eps_ez_resp+eps_omz_resp)))
-
-
-base_plot3 <- 
-  ggplot(omz_node6) +
-  aes(x = r_omz, y = f_onet, color = factor(eps_omz_fix), linetype = factor(r_ez)) +
-  geom_line() + 
-  #geom_hline(yintercept = -10, color = "black", linetype = 2) +
-  scale_x_continuous(name = latex2exp::TeX("$r_{omz}$"), 
-                     expand = c(0,0), labels = function(x) paste(100*x, "%")) +
-  scale_y_continuous(name = latex2exp::TeX("$f_{onet}$")) +
-  scale_color_manual(name = "Eps OMZ Fixation", 
-                     values = RColorBrewer::brewer.pal(6, "Dark2")) +
-  scale_linetype_manual(name = "EZ Remineralization", 
-                     labels = function(x) paste0(100*as.numeric(x), "%"),
-                     values = 1:5) +
-  #expand_limits(y = -15) +
-  theme_gray()
-
-base_plot3
-```
-```
 
 
